@@ -3,7 +3,6 @@ package ru.art;
 import java.io.Serializable;
 
 public class MyFile implements Serializable {
-    private static final long serialVersionUID = 5193392663743561680L;
 
     private String name;
     private byte[] bytes;

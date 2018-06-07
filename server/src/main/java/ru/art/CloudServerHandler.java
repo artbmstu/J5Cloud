@@ -1,17 +1,22 @@
 package ru.art;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 public class CloudServerHandler extends ChannelInboundHandlerAdapter {
+    private List filePathes;
+
+    CloudServerHandler(List filePathes){
+        this.filePathes = filePathes;
+    }
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("Client connected...");
@@ -22,18 +27,22 @@ public class CloudServerHandler extends ChannelInboundHandlerAdapter {
         try {
             if (msg == null)
                 return;
-            if (msg instanceof MyMessage) {
-                System.out.println("Client text message: " + ((MyMessage) msg).getText());
-            } else
             if (msg instanceof MyFile){
                 MyFile myFile = (MyFile)msg;
                 byte[] bytes = myFile.getBytes();
-                FileOutputStream fos = new FileOutputStream(new File("common/storage/clone." + myFile.getName()));
+                String newFileName = myFile.getName();
+                FileOutputStream fos = new FileOutputStream(new File("common/storage/" + newFileName));
                 fos.write(bytes);
                 fos.close();
-                ChannelFuture channelFuture = ctx.writeAndFlush(new MyMessage("done!"));
-            } else {
-                System.out.println("Wrong object");
+                filePathes.add(newFileName);
+                ctx.writeAndFlush(new UpdateMessage(filePathes,"/update"));
+            }
+            if (msg instanceof String){
+                byte[] data = Files.readAllBytes(Paths.get("common/storage/" + msg));
+                MyFile myFile = new MyFile();
+                myFile.setName((String) msg);
+                myFile.setBytes(data);
+                ctx.writeAndFlush(myFile);
             }
         } finally {
             ReferenceCountUtil.release(msg);
