@@ -15,24 +15,13 @@ import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
 public class CloudServer {
     private static final int PORT = 8189;
-    private static final int MAX_OBJ_SIZE = 1024 * 1024 * 100;
-    private List filePathes;
+    private static final int MAX_OBJ_SIZE = 1024 * 1024 * 100 * 10;
 
     public static final ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-    public CloudServer() {
-    }
-
     public void run() throws Exception {
-        readFileStructure();
         EventLoopGroup mainGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -40,12 +29,12 @@ public class CloudServer {
             b.group(mainGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
-                        protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        protected void initChannel(SocketChannel socketChannel) {
                             socketChannel.pipeline().addLast(
                                     new ObjectEncoder(),
                                     new ObjectDecoder(MAX_OBJ_SIZE, ClassResolvers.cacheDisabled(null)),
-                                    new AuthHandler(filePathes),
-                                    new CloudServerHandler(filePathes)
+                                    new AuthHandler(),
+                                    new CloudServerHandler()
                             );
                         }
                     })
@@ -62,16 +51,5 @@ public class CloudServer {
 
     public static void main(String[] args) throws Exception {
         new CloudServer().run();
-    }
-
-    private void readFileStructure(){
-        filePathes = new ArrayList();
-        try {
-            Files.list(Paths.get("common/storage/")).forEach(p -> {
-                filePathes.add(p.getFileName().toString());
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

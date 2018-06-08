@@ -21,7 +21,7 @@ public class Network {
     }
     public void connect() throws IOException {
         socket = new Socket("localhost", 8189);
-        in = new ObjectDecoderInputStream(socket.getInputStream());
+        in = new ObjectDecoderInputStream(socket.getInputStream(), 1024 * 1024 * 100 * 10);
         out = new ObjectEncoderOutputStream(socket.getOutputStream());
     }
     public void sendData(Object data) throws IOException{

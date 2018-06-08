@@ -2,21 +2,27 @@ package ru.art;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 public class AuthMessage implements Serializable, Message {
 
-    private String text;
+    private String command, fileName;
     private String login, password;
-    private List filePathes;
+    private Set filePathes;
 
     @Override
-    public List getFilePathes() {
+    public Set getFilePathes() {
         return filePathes;
     }
 
     @Override
-    public String getText() {
-        return text;
+    public String getFileName() {
+        return fileName;
+    }
+
+    @Override
+    public String getCommand() {
+        return command;
     }
 
     public String getLogin() {
@@ -31,8 +37,8 @@ public class AuthMessage implements Serializable, Message {
         this.login = login;
         this.password = password;
     }
-    AuthMessage (List filePathes, String text){
-        this.text = text;
+    AuthMessage (Set filePathes, String command){
+        this.command = command;
         this.filePathes = filePathes;
     }
 }

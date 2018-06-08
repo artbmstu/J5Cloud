@@ -6,19 +6,25 @@ import io.netty.util.ReferenceCountUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.Set;
 
 public class CloudServerHandler extends ChannelInboundHandlerAdapter {
-    private List filePathes;
+    private Set filePathes;
+    private final String DIRECROTY_PATH = "common/storage/";
 
-    CloudServerHandler(List filePathes){
-        this.filePathes = filePathes;
+    CloudServerHandler(){
+        try {
+            filePathes = new FileReader().readFileStructure();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) {
         System.out.println("Client connected...");
     }
 
@@ -29,20 +35,23 @@ public class CloudServerHandler extends ChannelInboundHandlerAdapter {
                 return;
             if (msg instanceof MyFile){
                 MyFile myFile = (MyFile)msg;
-                byte[] bytes = myFile.getBytes();
-                String newFileName = myFile.getName();
-                FileOutputStream fos = new FileOutputStream(new File("common/storage/" + newFileName));
-                fos.write(bytes);
-                fos.close();
-                filePathes.add(newFileName);
-                ctx.writeAndFlush(new UpdateMessage(filePathes,"/update"));
+                saveFile(myFile);
+                updateOnClient(ctx);
             }
-            if (msg instanceof String){
-                byte[] data = Files.readAllBytes(Paths.get("common/storage/" + msg));
-                MyFile myFile = new MyFile();
-                myFile.setName((String) msg);
-                myFile.setBytes(data);
-                ctx.writeAndFlush(myFile);
+            if (msg instanceof Message){
+                Message doMsg = (Message) msg;
+                switch (doMsg.getCommand()){
+                    case "/download":
+                        ctx.writeAndFlush(sendFile(doMsg));
+                        break;
+                    case "/delete":
+                        deleteFile(doMsg.getFileName());
+                        updateOnClient(ctx);
+                        break;
+                    case "/update":
+                        updateOnClient(ctx);
+                        break;
+                }
             }
         } finally {
             ReferenceCountUtil.release(msg);
@@ -50,13 +59,37 @@ public class CloudServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+    public void channelReadComplete(ChannelHandlerContext ctx) {
         ctx.flush();
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
+    }
+
+    private MyFile sendFile(Message doMsg) throws Exception{
+        byte[] data = Files.readAllBytes(Paths.get(DIRECROTY_PATH + doMsg.getFileName()));
+        MyFile myFile = new MyFile();
+        myFile.setName(doMsg.getFileName());
+        myFile.setBytes(data);
+        return myFile;
+    }
+
+    private void deleteFile(String fileToDelete){
+        new File(DIRECROTY_PATH + fileToDelete).delete();
+        filePathes.remove(fileToDelete);
+    }
+    private void saveFile(MyFile myFile) throws Exception{
+        byte[] bytes = myFile.getBytes();
+        String newFileName = myFile.getName();
+        FileOutputStream fos = new FileOutputStream(new File(DIRECROTY_PATH + newFileName));
+        fos.write(bytes);
+        fos.close();
+        filePathes.add(newFileName);
+    }
+    private void updateOnClient(ChannelHandlerContext ctx) throws IOException {
+        ctx.writeAndFlush(new DoMessage(new FileReader().readFileStructure(),"/update"));
     }
 }

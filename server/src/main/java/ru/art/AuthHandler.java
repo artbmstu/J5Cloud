@@ -4,18 +4,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-import java.util.List;
-
 public class AuthHandler extends ChannelInboundHandlerAdapter {
     private boolean authorized;
-    private List filePathes;
-
-    AuthHandler(List filePathes){
-        this.filePathes = filePathes;
-    }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception{
+    public void channelActive(ChannelHandlerContext ctx) {
         System.out.println("Подключился новый неавторизованный пользователь");
     }
 
@@ -27,10 +20,9 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
         if (!authorized){
             if (msg instanceof AuthMessage){
                 AuthMessage am = (AuthMessage) msg;
-                if ((am.getLogin().equals("login")) && (am.getPassword().equals("pas"))){
+                if ((am.getLogin().equals("a")) && (am.getPassword().equals("a"))){
                     authorized = true;
-                    AuthMessage authMessage = new AuthMessage(filePathes, "/authOk");
-                    ctx.write(authMessage);
+                    ctx.writeAndFlush(new AuthMessage(new FileReader().readFileStructure(),"/authOk"));
                     CloudServer.allChannels.add(ctx.channel());
                 }
             } else {
@@ -48,12 +40,12 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+    public void channelReadComplete(ChannelHandlerContext ctx) {
         ctx.flush();
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
     }

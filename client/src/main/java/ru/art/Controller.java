@@ -3,14 +3,17 @@ package ru.art;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
+import javafx.stage.DirectoryChooser;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 
 public class Controller {
 
@@ -40,7 +43,7 @@ public class Controller {
                             Object msg = Network.getInstance().readData();
                             if (msg instanceof Message){
                                 Message am = (Message) msg;
-                                switch (am.getText()){
+                                switch (am.getCommand()){
                                     case "/authOk":
                                         authOk();
                                         initializeSimpleListView(am.getFilePathes());
@@ -100,7 +103,7 @@ public class Controller {
         cloudList.setDisable(false);
     }
 
-    public void initializeSimpleListView(List pathes) {
+    public void initializeSimpleListView(Set pathes) {
         Platform.runLater(() -> {
             ObservableList<String> listItems = FXCollections.observableArrayList();
             cloudList.setItems(listItems);
@@ -108,20 +111,58 @@ public class Controller {
         });
     }
 
-    public void downloadFile() {
-        String currentItemSelected = (String)cloudList.getSelectionModel().getSelectedItem();
-        try {
-            Network.getInstance().sendData(currentItemSelected);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void downloadFile() throws IOException {
+        Network.getInstance().sendData(new DoMessage("/download", (String)cloudList.getSelectionModel().getSelectedItem()));
     }
 
-    public void saveFile(MyFile myFile) throws IOException{
-        byte[] bytes = myFile.getBytes();
-        String fileName = myFile.getName();
-        FileOutputStream fos = new FileOutputStream(new File("common/clientStorage/" + fileName));
-        fos.write(bytes);
-        fos.close();
+    public void saveFile(MyFile myFile){
+        Platform.runLater(() -> {
+            final DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Выберите директорию");
+            directoryChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+            File dir = directoryChooser.showDialog(Main.getPrimaryStage());
+            if (dir != null) {
+                byte[] bytes = myFile.getBytes();
+                String fileName = myFile.getName();
+                try {
+                    FileOutputStream fos = new FileOutputStream(new File(dir.getPath() + "/" + fileName));
+                    fos.write(bytes);
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+//        JFileChooser chooser = new JFileChooser();
+//        chooser.setCurrentDirectory(new java.io.File("."));
+//        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+//        int ret = chooser.showDialog(null, "Выбрать директорию");
+//        if (ret == JFileChooser.APPROVE_OPTION) {
+//            byte[] bytes = myFile.getBytes();
+//            String fileName = myFile.getName();
+//            File file = chooser.getSelectedFile();
+//            System.out.println(file.getPath());
+//            System.out.println(fileName);
+//            FileOutputStream fos = new FileOutputStream(new File(file.getPath() + "/" + fileName));
+//            fos.write(bytes);
+//            fos.close();
+//        }
+//                byte[] array = IOUtils.toByteArray(new FileInputStream(file));
+//                MyFile myFile = new MyFile();
+//                myFile.setName(FilenameUtils.getName(file.getAbsolutePath()));
+//                myFile.setBytes(array);
+//                oeos.writeObject(myFile);
+//                oeos.flush();
+//            }
+
+    }
+
+    public void deleteFile(ActionEvent actionEvent) throws IOException {
+        Network.getInstance().sendData(new DoMessage("/delete", (String)cloudList.getSelectionModel().getSelectedItem()));
+
+    }
+
+    public void updateFiles(ActionEvent actionEvent) throws IOException {
+        Network.getInstance().sendData(new DoMessage("/update"));
     }
 }
