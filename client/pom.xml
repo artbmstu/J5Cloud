@@ -22,7 +22,7 @@
             <version>2.5</version>
         </dependency>
         <dependency>
-            <groupId>com.flamexander</groupId>
+            <groupId>ru.art</groupId>
             <artifactId>common</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
