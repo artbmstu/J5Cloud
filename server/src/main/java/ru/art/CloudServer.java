@@ -14,14 +14,22 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import org.hibernate.Session;
+import ru.art.SQLiteHibernateSupport.HibernateUtil;
 
 public class CloudServer {
     private static final int PORT = 8189;
     private static final int MAX_OBJ_SIZE = 1024 * 1024 * 100 * 10;
+    private static Session session;
 
     public static final ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
+    public static Session getSession() {
+        return session;
+    }
+
     public void run() throws Exception {
+        session = HibernateUtil.getSessionFactory().openSession();
         EventLoopGroup mainGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -46,6 +54,7 @@ public class CloudServer {
         } finally {
             mainGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            session.close();
         }
     }
 

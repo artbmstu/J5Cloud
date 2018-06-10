@@ -3,6 +3,9 @@ package ru.art;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
+import org.hibernate.Session;
+
+import java.util.List;
 
 public class AuthHandler extends ChannelInboundHandlerAdapter {
     private boolean authorized;
@@ -17,14 +20,27 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
         if (msg == null){
             return;
         }
+        if (msg instanceof DoMessage) {
+            if (((DoMessage) msg).getCommand().equals("/exit")){
+                authorized = false;
+                channelInactive(ctx);
+            }
+        }
         if (!authorized){
             if (msg instanceof AuthMessage){
                 AuthMessage am = (AuthMessage) msg;
-                if ((am.getLogin().equals("a")) && (am.getPassword().equals("a"))){
+                Session session = CloudServer.getSession();
+                session.beginTransaction();
+                List result = session.createQuery("select users from UsersEntity users where users.login = :login and users.password = :password")
+                        .setParameter("login", am.getLogin())
+                        .setParameter("password", am.getPassword())
+                        .list();
+                if (!result.isEmpty()){
                     authorized = true;
                     ctx.writeAndFlush(new AuthMessage(new FileReader().readFileStructure(),"/authOk"));
                     CloudServer.allChannels.add(ctx.channel());
                 }
+                session.getTransaction().commit();
             } else {
                 ReferenceCountUtil.release(msg);
             }

@@ -8,8 +8,8 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-
 <?import javafx.scene.text.Font?>
+
 <VBox alignment="center" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.art.Controller">
     <ProgressBar fx:id="operationProgress" managed="false" maxWidth="Infinity" visible="false" />
     <HBox fx:id="authPanel" managed="true" visible="true">
@@ -26,9 +26,10 @@
             </Label>
             <ListView fx:id="cloudList" disable="true" onDragDropped="#sendFile" onDragOver="#draggingOver" VBox.vgrow="ALWAYS" />
             <HBox fx:id="actionPanel" managed="false" visible="false">
-                <Button maxWidth="Infinity" onAction="#downloadFile" text="Скачать файл" HBox.hgrow="ALWAYS" />
-                <Button maxWidth="Infinity" onAction="#deleteFile" text="Удалить файл" HBox.hgrow="ALWAYS" />
-                <Button maxWidth="Infinity" onAction="#updateFiles" text="Обновить" HBox.hgrow="ALWAYS" />
+                <Button fx:id="download" maxWidth="Infinity" onAction="#downloadFile" text="Скачать файл" HBox.hgrow="ALWAYS" />
+                <Button fx:id="delete" maxWidth="Infinity" onAction="#deleteFile" text="Удалить файл" HBox.hgrow="ALWAYS" />
+                <Button fx:id="update" maxWidth="Infinity" onAction="#updateFiles" text="Обновить" HBox.hgrow="ALWAYS" />
+                <Button fx:id="logout" maxWidth="Infinity" onAction="#exitAuth" text="Выйти" HBox.hgrow="ALWAYS" />
             </HBox>
         </VBox>
     </HBox>

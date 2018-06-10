@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+  <session-factory>
+    <property name="show_sql">true</property>
+    <property name="format_sql">true</property>
+    <property name="connection.url">jdbc:sqlite:C:/Users/AAARTEMYEV/IdeaProjects/Cloud/server/src/main/java/authbd.db
+    </property>
+    <property name="connection.driver_class">org.sqlite.JDBC</property>
+    <property name="hibernate.dialect">ru.art.SQLiteHibernateSupport.SQLiteDialect</property>
+    <property name="connection.username"></property>
+    <property name="connection.password"></property>
+    <property name="hbm2ddl.auto">update</property>
+    <property name="hibernate.connection.autocommit">false</property>
+
+    <mapping resource="ru/art/Entity/UsersEntity.hbm.xml"/>
+
+  </session-factory>
+</hibernate-configuration>

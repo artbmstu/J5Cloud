@@ -5,6 +5,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
@@ -12,6 +14,7 @@ import javafx.stage.DirectoryChooser;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -22,6 +25,7 @@ public class Controller {
     public HBox actionPanel;
     public HBox authPanel;
     public ListView cloudList;
+    public Button download, delete, update, logout;
 
     public void tryToAuth(){
         openConnection();
@@ -34,6 +38,7 @@ public class Controller {
     }
 
     public void openConnection(){
+        setImages();
         if (!Network.getInstance().isConnected()){
             try {
                 Network.getInstance().connect();
@@ -95,12 +100,19 @@ public class Controller {
         }
     }
 
-    public void authOk(){
+    void authOk(){
         authPanel.setVisible(false);
         authPanel.setManaged(false);
         actionPanel.setVisible(true);
         actionPanel.setManaged(true);
         cloudList.setDisable(false);
+    }
+    void authNotOk(){
+        authPanel.setVisible(true);
+        authPanel.setManaged(true);
+        actionPanel.setVisible(false);
+        actionPanel.setManaged(false);
+        cloudList.setDisable(true);
     }
 
     public void initializeSimpleListView(Set pathes) {
@@ -133,28 +145,6 @@ public class Controller {
                 }
             }
         });
-//        JFileChooser chooser = new JFileChooser();
-//        chooser.setCurrentDirectory(new java.io.File("."));
-//        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-//        int ret = chooser.showDialog(null, "Выбрать директорию");
-//        if (ret == JFileChooser.APPROVE_OPTION) {
-//            byte[] bytes = myFile.getBytes();
-//            String fileName = myFile.getName();
-//            File file = chooser.getSelectedFile();
-//            System.out.println(file.getPath());
-//            System.out.println(fileName);
-//            FileOutputStream fos = new FileOutputStream(new File(file.getPath() + "/" + fileName));
-//            fos.write(bytes);
-//            fos.close();
-//        }
-//                byte[] array = IOUtils.toByteArray(new FileInputStream(file));
-//                MyFile myFile = new MyFile();
-//                myFile.setName(FilenameUtils.getName(file.getAbsolutePath()));
-//                myFile.setBytes(array);
-//                oeos.writeObject(myFile);
-//                oeos.flush();
-//            }
-
     }
 
     public void deleteFile(ActionEvent actionEvent) throws IOException {
@@ -164,5 +154,20 @@ public class Controller {
 
     public void updateFiles(ActionEvent actionEvent) throws IOException {
         Network.getInstance().sendData(new DoMessage("/update"));
+    }
+
+    public void exitAuth(ActionEvent actionEvent) throws IOException{
+        Network.getInstance().sendData(new DoMessage("/exit"));
+        cloudList.setItems(null);
+        loginField.clear();
+        passField.clear();
+        authNotOk();
+    }
+
+    private void setImages(){
+        Platform.runLater(() -> {
+            List<Button> buttons = Arrays.asList(download, update, delete, logout);
+            buttons.forEach((button)-> button.setGraphic(new ImageView(new Image(getClass().getClassLoader().getResourceAsStream(button.getId() + ".png"), 50, 50, true, false))));
+        });
     }
 }
