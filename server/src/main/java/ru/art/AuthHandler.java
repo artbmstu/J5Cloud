@@ -22,8 +22,7 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
         }
         if (msg instanceof DoMessage) {
             if (((DoMessage) msg).getCommand().equals("/exit")){
-                authorized = false;
-                channelInactive(ctx);
+                ctx.close();
             }
         }
         if (!authorized){

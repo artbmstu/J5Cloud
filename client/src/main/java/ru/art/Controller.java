@@ -25,7 +25,8 @@ public class Controller {
     public HBox actionPanel;
     public HBox authPanel;
     public ListView cloudList;
-    public Button download, delete, update, logout;
+    public Button download, delete, logout;
+    public ProgressBar operationProgress;
 
     public void tryToAuth(){
         openConnection();
@@ -42,6 +43,7 @@ public class Controller {
         if (!Network.getInstance().isConnected()){
             try {
                 Network.getInstance().connect();
+                Network.getInstance().setOperationProgress(operationProgress);
                 Thread thread = new Thread(() -> {
                     try {
                         while (true){
@@ -50,7 +52,7 @@ public class Controller {
                                 Message am = (Message) msg;
                                 switch (am.getCommand()){
                                     case "/authOk":
-                                        authOk();
+                                        auth(true);
                                         initializeSimpleListView(am.getFilePathes());
                                         break;
                                     case "/update":
@@ -62,8 +64,9 @@ public class Controller {
                                 saveFile((MyFile) msg);
                             }
                         }
-                    } catch (ClassNotFoundException | IOException e){
+                    } catch (ClassNotFoundException e) {
                         e.printStackTrace();
+                    } catch (IOException e){
                     } finally {
                         Network.getInstance().close();
                     }
@@ -100,20 +103,14 @@ public class Controller {
         }
     }
 
-    void authOk(){
-        authPanel.setVisible(false);
-        authPanel.setManaged(false);
-        actionPanel.setVisible(true);
-        actionPanel.setManaged(true);
-        cloudList.setDisable(false);
+    void auth(boolean authorized){
+        authPanel.setVisible(!authorized);
+        authPanel.setManaged(!authorized);
+        actionPanel.setVisible(authorized);
+        actionPanel.setManaged(authorized);
+        cloudList.setDisable(!authorized);
     }
-    void authNotOk(){
-        authPanel.setVisible(true);
-        authPanel.setManaged(true);
-        actionPanel.setVisible(false);
-        actionPanel.setManaged(false);
-        cloudList.setDisable(true);
-    }
+
 
     public void initializeSimpleListView(Set pathes) {
         Platform.runLater(() -> {
@@ -124,7 +121,10 @@ public class Controller {
     }
 
     public void downloadFile() throws IOException {
-        Network.getInstance().sendData(new DoMessage("/download", (String)cloudList.getSelectionModel().getSelectedItem()));
+        String dCmd = (String)cloudList.getSelectionModel().getSelectedItem();
+        if (dCmd != null) {
+            Network.getInstance().sendData(new DoMessage("/download", dCmd));
+        }
     }
 
     public void saveFile(MyFile myFile){
@@ -152,22 +152,23 @@ public class Controller {
 
     }
 
-    public void updateFiles(ActionEvent actionEvent) throws IOException {
-        Network.getInstance().sendData(new DoMessage("/update"));
-    }
+//    public void updateFiles(ActionEvent actionEvent) throws IOException {
+//        Network.getInstance().sendData(new DoMessage("/update"));
+//    }
 
-    public void exitAuth(ActionEvent actionEvent) throws IOException{
-        Network.getInstance().sendData(new DoMessage("/exit"));
+    public void exitAuth(ActionEvent actionEvent){
+        Network.getInstance().close();
         cloudList.setItems(null);
         loginField.clear();
         passField.clear();
-        authNotOk();
+        auth(false);
     }
 
     private void setImages(){
         Platform.runLater(() -> {
-            List<Button> buttons = Arrays.asList(download, update, delete, logout);
+            List<Button> buttons = Arrays.asList(download, delete, logout);
             buttons.forEach((button)-> button.setGraphic(new ImageView(new Image(getClass().getClassLoader().getResourceAsStream(button.getId() + ".png"), 50, 50, true, false))));
         });
     }
+
 }

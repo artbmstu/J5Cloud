@@ -1,7 +1,6 @@
 package ru.art;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
 
 public class DoMessage implements Message, Serializable {

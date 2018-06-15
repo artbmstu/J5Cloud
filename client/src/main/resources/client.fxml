@@ -15,7 +15,7 @@
     <HBox fx:id="authPanel" managed="true" visible="true">
         <TextField fx:id="loginField" promptText="Логин" HBox.hgrow="ALWAYS" />
         <PasswordField fx:id="passField" promptText="Пароль" HBox.hgrow="ALWAYS" />
-        <Button onAction="#tryToAuth" text="Авторизоваться" HBox.hgrow="ALWAYS" />
+        <Button defaultButton="true" onAction="#tryToAuth" text="Авторизоваться" HBox.hgrow="ALWAYS" />
     </HBox>
     <HBox VBox.vgrow="ALWAYS">
         <VBox HBox.hgrow="ALWAYS">
@@ -28,7 +28,6 @@
             <HBox fx:id="actionPanel" managed="false" visible="false">
                 <Button fx:id="download" maxWidth="Infinity" onAction="#downloadFile" text="Скачать файл" HBox.hgrow="ALWAYS" />
                 <Button fx:id="delete" maxWidth="Infinity" onAction="#deleteFile" text="Удалить файл" HBox.hgrow="ALWAYS" />
-                <Button fx:id="update" maxWidth="Infinity" onAction="#updateFiles" text="Обновить" HBox.hgrow="ALWAYS" />
                 <Button fx:id="logout" maxWidth="Infinity" onAction="#exitAuth" text="Выйти" HBox.hgrow="ALWAYS" />
             </HBox>
         </VBox>

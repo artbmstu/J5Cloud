@@ -36,7 +36,7 @@ public class CloudServerHandler extends ChannelInboundHandlerAdapter {
             if (msg instanceof MyFile){
                 MyFile myFile = (MyFile)msg;
                 saveFile(myFile);
-                updateOnClient(ctx);
+                updateOnClient();
             }
             if (msg instanceof Message){
                 Message doMsg = (Message) msg;
@@ -46,11 +46,11 @@ public class CloudServerHandler extends ChannelInboundHandlerAdapter {
                         break;
                     case "/delete":
                         deleteFile(doMsg.getFileName());
-                        updateOnClient(ctx);
+                        updateOnClient();
                         break;
-                    case "/update":
-                        updateOnClient(ctx);
-                        break;
+//                    case "/update":
+//                        updateOnClient(ctx);
+//                        break;
                 }
             }
         } finally {
@@ -89,7 +89,7 @@ public class CloudServerHandler extends ChannelInboundHandlerAdapter {
         fos.close();
         filePathes.add(newFileName);
     }
-    private void updateOnClient(ChannelHandlerContext ctx) throws IOException {
-        ctx.writeAndFlush(new DoMessage(new FileReader().readFileStructure(),"/update"));
+    private void updateOnClient() throws IOException {
+        CloudServer.allChannels.writeAndFlush(new DoMessage(new FileReader().readFileStructure(),"/update"));
     }
 }
